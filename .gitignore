@@ -1,0 +1,17 @@
+# Terraform caches and state files
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+crash.log
+
+# Terraform local variables (Protects your database passwords!)
+terraform.tfvars
+*.tfvars
+*.tfvars.json
+
+# Ansible and SSH Keys (Protects your servers!)
+*.retry
+*.pem
+*.key

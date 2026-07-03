@@ -1,0 +1,9 @@
+variable "project_name" {}
+variable "environment" {}
+variable "db_subnet_ids" {}
+variable "db_security_group_id" {}
+variable "db_username" {}
+variable "db_password" {}
+variable "db_instance_class" {}
+variable "db_allocated_storage" {}
+variable "db_max_allocated_storage" {}
