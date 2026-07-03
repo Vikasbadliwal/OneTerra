@@ -1,0 +1,11 @@
+# Ansible specific ignores
+*.retry
+*.log
+
+# Security ignores (Never push SSH keys or vault passwords!)
+*.pem
+*.key
+.vault_pass.txt
+
+# OS generated files
+.DS_Store

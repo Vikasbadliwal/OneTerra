@@ -1,0 +1,118 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles
+- name: Install required dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - openjdk-17-jdk
+    - unzip
+    - acl
+
+# DELETE the tasks for:
+# - Ensure PostgreSQL service is running
+# - Create SonarQube DB user
+# - Create SonarQube database
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure PostgreSQL service is running and enabled
+  systemd:
+    name: postgresql
+    state: started
+    enabled: yes
+
+# --- CRITICAL FIX 1: Create Database & User ---
+- name: Create SonarQube DB user
+  postgresql_user:
+    name: "{{ sonarqube_db_user }}"
+    password: "{{ sonarqube_db_password }}"
+    state: present
+  become: yes
+  become_user: postgres
+
+- name: Create SonarQube database
+  postgresql_db:
+    name: sonarqube
+    owner: "{{ sonarqube_db_user }}"
+    state: present
+  become: yes
+  become_user: postgres
+
+# --- CRITICAL FIX 2: Kernel Tuning for Elasticsearch ---
+- name: Set vm.max_map_count for Elasticsearch
+  ansible.posix.sysctl:
+    name: vm.max_map_count
+    value: '524288'
+    state: present
+    reload: yes
+
+- name: Set fs.file-max for Elasticsearch
+  ansible.posix.sysctl:
+    name: fs.file-max
+    value: '131072'
+    state: present
+    reload: yes
+
+# --- User & Directory Setup ---
+- name: Create SonarQube group
+  ansible.builtin.group:
+    name: sonarqube
+    state: present
+
+- name: Create SonarQube user
+  ansible.builtin.user:
+    name: sonarqube
+    group: sonarqube
+    home: /opt/sonarqube
+    shell: /bin/bash
+    create_home: no
+    system: yes
+    state: present
+
+- name: Download SonarQube
+  get_url:
+    url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonarqube_version }}.zip"
+    dest: "/opt/sonarqube-{{ sonarqube_version }}.zip"
+    mode: '0644'
+
+- name: Unarchive SonarQube
+  unarchive:
+    src: "/opt/sonarqube-{{ sonarqube_version }}.zip"
+    dest: "/opt/"
+    remote_src: yes
+    creates: "/opt/sonarqube-{{ sonarqube_version }}/bin"
+
+- name: Rename SonarQube directory
+  command: mv "/opt/sonarqube-{{ sonarqube_version }}" "/opt/sonarqube"
+  args:
+    creates: "/opt/sonarqube"
+
+- name: Ensure SonarQube ownership
+  ansible.builtin.file:
+    path: /opt/sonarqube
+    owner: sonarqube
+    group: sonarqube
+    recurse: yes
+
+- name: Configure SonarQube Properties
+  template:
+    src: sonarqube.properties.j2
+    dest: "/opt/sonarqube/conf/sonar.properties"
+    owner: sonarqube
+    group: sonarqube
+  notify: Restart SonarQube
+
+- name: Create systemd service for SonarQube
+  template:
+    src: sonarqube.service.j2
+    dest: /etc/systemd/system/sonarqube.service
+  notify: Reload systemd
+
+- name: Enable and start SonarQube service
+  systemd:
+    name: sonarqube
+    state: started
+    enabled: yes
+    daemon_reload: yes

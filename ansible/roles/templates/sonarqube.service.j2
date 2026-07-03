@@ -1,0 +1,19 @@
+[Unit]
+Description=SonarQube
+After=network.target
+
+[Service]
+Type=forking
+User=sonarqube
+Group=sonarqube
+ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
+ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
+PIDFile=/opt/sonarqube/bin/linux-x86-64/SonarQube.pid
+
+# Increased limits for Elasticsearch stability
+LimitNOFILE=131072
+LimitNPROC=8192
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
