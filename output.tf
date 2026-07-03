@@ -37,6 +37,11 @@ output "private_subnet_ids" {
   value       = module.vpc.private_subnet_ids
 }
 
+output "bastion_public_ip" {
+  value       = module.bastion.public_ip
+  description = "The public IP of the Bastion Host"
+}
+
 # output "s3_state_bucket" {
 # description = "S3 bucket used for Terraform state"
 # value       = module.s3_backend.bucket_name
