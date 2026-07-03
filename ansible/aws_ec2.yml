@@ -1,14 +1,9 @@
-plugin: amazon.aws.aws_ec2
-
+plugin: aws_ec2
 regions:
   - ap-south-1
-
-hostnames:
-  - ip-address
-
+filters:
+  # This matches the tag you set in your Terraform SonarQube module
+  tag:Name: SonarQube-Server 
 compose:
-  ansible_host: public_ip_address
-
-keyed_groups:
-  - key: tags.Name
-    prefix: tag
+  # Forces Ansible to connect using the private IP inside the VPC
+  ansible_host: private_ip_address
