@@ -1,4 +1,4 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
 # tasks file for roles
 - name: Install required dependencies
@@ -10,37 +10,9 @@
     - openjdk-17-jdk
     - unzip
     - acl
-
-# DELETE the tasks for:
-# - Ensure PostgreSQL service is running
-# - Create SonarQube DB user
-# - Create SonarQube database
   when: ansible_os_family == 'Debian'
 
-- name: Ensure PostgreSQL service is running and enabled
-  systemd:
-    name: postgresql
-    state: started
-    enabled: yes
-
-# --- CRITICAL FIX 1: Create Database & User ---
-- name: Create SonarQube DB user
-  postgresql_user:
-    name: "{{ sonarqube_db_user }}"
-    password: "{{ sonarqube_db_password }}"
-    state: present
-  become: yes
-  become_user: postgres
-
-- name: Create SonarQube database
-  postgresql_db:
-    name: sonarqube
-    owner: "{{ sonarqube_db_user }}"
-    state: present
-  become: yes
-  become_user: postgres
-
-# --- CRITICAL FIX 2: Kernel Tuning for Elasticsearch ---
+# --- Kernel Tuning for Elasticsearch ---
 - name: Set vm.max_map_count for Elasticsearch
   ansible.posix.sysctl:
     name: vm.max_map_count
