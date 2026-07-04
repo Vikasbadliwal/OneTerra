@@ -3,7 +3,6 @@
 pipeline {
     agent any
     
-    // 1. ADD THIS BLOCK: Creates a dropdown menu in Jenkins
     parameters {
         choice(name: 'ACTION', choices: ['Apply', 'Destroy'], description: 'Select Apply to build the project, or Destroy to wipe the AWS environment.')
     }
@@ -17,11 +16,25 @@ pipeline {
         stage('Checkout Infrastructure Code') {
             steps {
                 checkout scm
+                script {
+                    echo " Creating dynamic terraform.tfvars file..."
+                    // This generates the file directly in the Jenkins workspace securely
+                    sh '''
+                    cat << 'EOF' > terraform.tfvars
+                    availability_zones   = ["ap-south-1a", "ap-south-1b"]
+                    public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+                    private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
+                    db_subnet_cidrs      = ["10.0.5.0/24", "10.0.6.0/24"]
+                    key_name             = "sonarkey"
+                    allowed_ssh_cidr     = "0.0.0.0/0"
+                    db_password          = "YourSecureDBPassword123"
+                    EOF
+                    '''
+                }
             }
         }
         
         stage('Provision AWS Infrastructure') {
-            // 2. ADD THIS CONDITION: Only runs if you select 'Apply'
             when { 
                 expression { params.ACTION == 'Apply' } 
             }
@@ -38,7 +51,6 @@ pipeline {
         }
         
         stage('Configure SonarQube via Ansible') {
-            // Only runs if you select 'Apply'
             when { 
                 expression { params.ACTION == 'Apply' } 
             }
@@ -54,7 +66,6 @@ pipeline {
                         sh 'rm -f sonarkey.pem'
                     }
                     
-                    // Moved the success message here so it only triggers on Apply
                     echo " DEPLOYMENT SUCCESSFUL!"
                     echo " SonarQube is now live. Access your dashboard here: http://${env.ALB_URL}"
                 }
@@ -62,13 +73,11 @@ pipeline {
         }
         
         stage('Destroy AWS Infrastructure') {
-            // 3. THE DESTROY ROUTE: Only runs if you select 'Destroy'
             when { 
                 expression { params.ACTION == 'Destroy' } 
             }
             steps {
                 script {
-                    // Calls the new function from your shared library
                     destroyInfra()
                 }
             }
@@ -77,8 +86,9 @@ pipeline {
     
     post {
         always {
-            // Ensure the SSH key is deleted even if the pipeline fails or is cancelled
+            // Clean up files for hygiene and security
             sh 'rm -f sonarkey.pem'
+            sh 'rm -f terraform.tfvars'
         }
     }
 }
