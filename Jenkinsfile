@@ -12,27 +12,25 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
     }
     
-    stages {
-        stage('Checkout Infrastructure Code') {
+    stage('Checkout Infrastructure Code') {
             steps {
                 checkout scm
                 script {
-                    echo " Creating dynamic terraform.tfvars file..."
-                    // This generates the file directly in the Jenkins workspace securely
-                    sh '''
-                    cat << 'EOF' > terraform.tfvars
-                    availability_zones   = ["ap-south-1a", "ap-south-1b"]
-                    public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
-                    private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
-                    db_subnet_cidrs      = ["10.0.5.0/24", "10.0.6.0/24"]
-                    key_name             = "sonarkey"
-                    allowed_ssh_cidr     = "0.0.0.0/0"
-                    db_password          = "YourSecureDBPassword123"
-                    EOF
-                    '''
+                    echo "📝 Creating dynamic terraform.tfvars file..."
+                    
+                    // The native Jenkins way to write files (immune to spacing errors)
+                    writeFile file: 'terraform.tfvars', text: """
+availability_zones   = ["ap-south-1a", "ap-south-1b"]
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
+db_subnet_cidrs      = ["10.0.5.0/24", "10.0.6.0/24"]
+key_name             = "sonarkey"
+allowed_ssh_cidr     = "0.0.0.0/0
+db_password          = "YourSecureDBPassword123"
+"""
                 }
             }
-        }
+        } 
         
         stage('Provision AWS Infrastructure') {
             when { 
