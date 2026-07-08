@@ -15,6 +15,13 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   
   egress {
     from_port   = 0
@@ -23,7 +30,6 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
 # ── UPDATE 2: PLACE BASTION SG BEFORE SONARQUBE SG ─────────────────────
 # (Terraform needs this declared so the SonarQube group can reference its ID)
 resource "aws_security_group" "bastion_sg" {
