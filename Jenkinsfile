@@ -83,9 +83,9 @@ pipeline {
 }
 
 success {
-            echo "Sending Success Email..."
+            echo " Sending Success Email..."
             emailext (
-                subject: "SUCCESS: Jenkins Pipeline - ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                subject: " SUCCESS: Jenkins Pipeline - ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
                 body: """
                 Great news! Your AWS Infrastructure pipeline completed successfully.
                 
@@ -96,7 +96,7 @@ success {
             )
         }
         failure {
-            echo "Sending Failure Email..."
+            echo " Sending Failure Email..."
             emailext (
                 subject: " FAILED: Jenkins Pipeline - ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
                 body: """
@@ -107,4 +107,7 @@ success {
                 to: "badliwalvikash@gmail.com" 
             )
         }
+    }
+}
+
     
