@@ -91,7 +91,7 @@ success {
                 Action Performed: ${params.ACTION}
                 View the complete build logs here: ${env.BUILD_URL}
                 """,
-                to: "your-actual-email@example.com" 
+                to: "badliwalvikash@gmail.com" 
             )
         }
         failure {
