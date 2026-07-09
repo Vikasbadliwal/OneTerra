@@ -81,6 +81,7 @@ pipeline {
         }
     }
 }
+
 success {
             echo "Sending Success Email..."
             emailext (
@@ -106,4 +107,4 @@ success {
                 to: "badliwalvikash@gmail.com" 
             )
         }
-    }
+    
