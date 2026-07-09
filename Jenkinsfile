@@ -16,9 +16,7 @@ pipeline {
 
     stages {
         stage('Clone Terraform + Ansible Repo') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
 
         stage('Terraform Init') {
@@ -49,18 +47,14 @@ pipeline {
 
         stage('Update Ansible Inventory') {
             when { expression { params.ACTION == 'Apply' } }
-            steps {
-                echo "Inventory updated securely via Dynamic AWS Plugin."
-            }
+            steps { echo "Inventory updated securely via Dynamic AWS Plugin." }
         }
 
         stage('Run Ansible Role') {
             when { expression { params.ACTION == 'Apply' } }
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'sonarqube-ssh-key', keyFileVariable: 'SSH_KEY_PATH', usernameVariable: 'SSH_USER')]) {
-                    script {
-                        configureSonar(env.BASTION_IP)
-                    }
+                    script { configureSonar(env.BASTION_IP) }
                 }
                 echo " SonarQube is Live: http://${env.ALB_URL}"
             }
@@ -79,10 +73,7 @@ pipeline {
             sh 'rm -f sonarkey.pem || true'
             cleanWs()
         }
-    }
-}
-
-success {
+        success {
             echo " Sending Success Email..."
             emailext (
                 subject: " SUCCESS: Jenkins Pipeline - ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
@@ -109,5 +100,3 @@ success {
         }
     }
 }
-
-    
