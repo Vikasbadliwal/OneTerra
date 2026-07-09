@@ -81,3 +81,29 @@ pipeline {
         }
     }
 }
+success {
+            echo "Sending Success Email..."
+            emailext (
+                subject: "SUCCESS: Jenkins Pipeline - ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                body: """
+                Great news! Your AWS Infrastructure pipeline completed successfully.
+                
+                Action Performed: ${params.ACTION}
+                View the complete build logs here: ${env.BUILD_URL}
+                """,
+                to: "your-actual-email@example.com" 
+            )
+        }
+        failure {
+            echo "Sending Failure Email..."
+            emailext (
+                subject: " FAILED: Jenkins Pipeline - ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                body: """
+                Uh oh. The Jenkins pipeline failed during the ${params.ACTION} process.
+                
+                Please check the console logs to see what went wrong: ${env.BUILD_URL}
+                """,
+                to: "badliwalvikash@gmail.com" 
+            )
+        }
+    }
